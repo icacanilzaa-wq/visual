@@ -31,32 +31,35 @@ df_all = load_data()
 st.sidebar.header("⚙️ Pengaturan Model Regresi")
 
 # 1. Pilih Kota/Kabupaten
-list_kota = df_all['Kota'].unique() if 'Kota' in df_all.columns else []
-selected_kota = st.sidebar.selectbox("Pilih Kota/Kabupaten:", options=list_kota, index=list_kota.tolist().index('Kota Surabaya') if 'Kota Surabaya' in list_kota else 0)
+list_kota = df_all['Kota'].unique().tolist() if 'Kota' in df_all.columns else []
+default_kota_idx = list_kota.index('Kota Surabaya') if 'Kota Surabaya' in list_kota else 0
+
+selected_kota = st.sidebar.selectbox("1. Pilih Kota/Kabupaten:", options=list_kota, index=default_kota_idx)
 
 # Filter Data berdasarkan Kota yang dipilih
 df = df_all[df_all['Kota'] == selected_kota].copy()
 
-# Pilih Kolom Numerik
+# Pilih Kolom Numerik untuk Regresi
 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
 st.sidebar.markdown("---")
+
 # 2. Pilih Variabel Dependent (Y)
 default_y = 'KEMISKINAN' if 'KEMISKINAN' in numeric_cols else numeric_cols[0]
-var_y = st.sidebar.selectbox("Pilih Variabel Terikat (Y):", options=numeric_cols, index=numeric_cols.index(default_y) if default_y in numeric_cols else 0)
+var_y = st.sidebar.selectbox("2. Pilih Variabel Terikat (Y):", options=numeric_cols, index=numeric_cols.index(default_y) if default_y in numeric_cols else 0)
 
-# 3. Pilih Variabel Independent (X1 dan X2)
-available_x = [col for col in numeric_cols if col != var_y]
+# 3. Pilih Variabel Independent (X1)
+available_x1 = [col for col in numeric_cols if col != var_y]
+default_x1 = 'bm_ekonomi' if 'bm_ekonomi' in available_x1 else available_x1[0]
+var_x1 = st.sidebar.selectbox("3. Pilih Variabel Bebas 1 (X1):", options=available_x1, index=available_x1.index(default_x1) if default_x1 in available_x1 else 0)
 
-default_x1 = 'bm_ekonomi' if 'bm_ekonomi' in available_x else available_x[0]
-var_x1 = st.sidebar.selectbox("Pilih Variabel Bebas 1 (X1):", options=available_x, index=available_x.index(default_x1) if default_x1 in available_x else 0)
-
-available_x2 = [col for col in available_x if col != var_x1]
+# 4. Pilih Variabel Independent (X2)
+available_x2 = [col for col in available_x1 if col != var_x1]
 default_x2 = 'DBH_PAJAK' if 'DBH_PAJAK' in available_x2 else available_x2[0]
-var_x2 = st.sidebar.selectbox("Pilih Variabel Bebas 2 (X2):", options=available_x2, index=available_x2.index(default_x2) if default_x2 in available_x2 else 0)
+var_x2 = st.sidebar.selectbox("4. Pilih Variabel Bebas 2 (X2):", options=available_x2, index=available_x2.index(default_x2) if default_x2 in available_x2 else 0)
 
 st.sidebar.markdown("---")
-st.sidebar.metric("Total Data Terpilih", f"{len(df)} baris")
+st.sidebar.metric(f"Total Data {selected_kota}", f"{len(df)} baris")
 
 # 2. PROSES MODEL REGRESI
 X = df[[var_x1, var_x2]].dropna()
